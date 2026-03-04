@@ -19,6 +19,11 @@ export function ChoreographySelector({ choreographies, onChoose, onAdd }: Choreo
   const [url, setUrl] = useState('')
   const [progress, setProgress] = useState(0)
   const [loading, setLoading] = useState('')
+  const [error, setError] = useState('')
+
+  const isLikelyDirectVideoUrl = (value: string): boolean => {
+    return /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(value)
+  }
 
   const allChoreographies = useMemo(() => {
     return [...BUILTIN_CHOREOGRAPHIES, ...choreographies].filter((item) => {
@@ -29,8 +34,15 @@ export function ChoreographySelector({ choreographies, onChoose, onAdd }: Choreo
   }, [choreographies, difficulty, query])
 
   const ingestVideo = async (source: 'upload' | 'url', file?: File, videoUrl?: string) => {
+    setError('')
     setLoading('Processing choreography video...')
     setProgress(0)
+
+    if (source === 'url' && videoUrl && !isLikelyDirectVideoUrl(videoUrl)) {
+      setLoading('')
+      setError('Please provide a direct video file URL (for example .mp4 or .webm).')
+      return
+    }
 
     const detector = await createPoseDetector()
     try {
@@ -47,8 +59,10 @@ export function ChoreographySelector({ choreographies, onChoose, onAdd }: Choreo
       onAdd(choreography)
       onChoose(choreography)
       setLoading('Done')
-    } catch {
-      setLoading('Video processing failed')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Video processing failed'
+      setLoading('')
+      setError(message)
     } finally {
       detector.close?.()
       setTimeout(() => {
@@ -120,6 +134,7 @@ export function ChoreographySelector({ choreographies, onChoose, onAdd }: Choreo
           </div>
         </div>
       )}
+      {error && <p className="text-sm text-rose-400">{error}</p>}
 
       <div className="grid gap-3 md:grid-cols-3">
         {allChoreographies.map((item) => (

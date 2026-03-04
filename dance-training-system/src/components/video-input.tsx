@@ -4,10 +4,11 @@ import { useEffect, useRef } from 'react'
 
 interface VideoInputProps {
   onReady: (video: HTMLVideoElement) => void
+  onError?: (message: string) => void
   mirror?: boolean
 }
 
-export function VideoInput({ onReady, mirror = true }: VideoInputProps) {
+export function VideoInput({ onReady, onError, mirror = true }: VideoInputProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
   useEffect(() => {
@@ -24,14 +25,16 @@ export function VideoInput({ onReady, mirror = true }: VideoInputProps) {
       onReady(videoRef.current)
     }
 
-    start().catch(() => {
-      return
+    start().catch((error) => {
+      const message =
+        error instanceof Error ? error.message : 'Camera access failed. Check browser permissions and device settings.'
+      onError?.(message)
     })
 
     return () => {
       stream?.getTracks().forEach((track) => track.stop())
     }
-  }, [onReady])
+  }, [onError, onReady])
 
   return (
     <video

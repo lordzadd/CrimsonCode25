@@ -57,6 +57,7 @@ export async function processVideoToChoreography(options: ProcessVideoOptions): 
   const objectUrl = options.file ? URL.createObjectURL(options.file) : undefined
 
   video.crossOrigin = 'anonymous'
+  video.preload = 'metadata'
   video.src = options.videoUrl ?? objectUrl ?? ''
   video.muted = true
   video.playsInline = true
@@ -87,6 +88,12 @@ export async function processVideoToChoreography(options: ProcessVideoOptions): 
   }
 
   const filteredFrames = filterSimilarPoses(frames, 90)
+  if (filteredFrames.length === 0) {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl)
+    }
+    throw new Error('No visible poses were detected in this video.')
+  }
 
   const canvas = document.createElement('canvas')
   canvas.width = video.videoWidth || 640

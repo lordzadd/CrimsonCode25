@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import { ChoreographySelector } from '@/components/choreography-selector'
 import { PoseDetection } from '@/components/pose-detection'
 import { PoseOverlayCanvas } from '@/components/pose-overlay-canvas'
@@ -19,10 +20,14 @@ import {
 } from '@/lib/avatar-storage'
 import { calculateSimilarity } from '@/lib/pose-comparison'
 import type { Choreography, PoseFrame, TrainerMode } from '@/types/pose'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const ADVANCE_THRESHOLD = 78
+
+function modeButtonClass(isActive: boolean): string {
+  return isActive
+    ? 'rounded-none border border-amber-700 bg-amber-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-100'
+    : 'rounded-none border border-amber-800 bg-amber-100/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-900 transition hover:bg-amber-100/70'
+}
 
 export function DanceTrainer() {
   const [customChoreographies, setCustomChoreographies] = useState<Choreography[]>([])
@@ -44,6 +49,8 @@ export function DanceTrainer() {
   const all = useMemo(() => [...BUILTIN_CHOREOGRAPHIES, ...customChoreographies], [customChoreographies])
   const targetPose = selected.poses[index] ?? null
   const similarity = currentPose && targetPose ? calculateSimilarity(currentPose, targetPose) : 0
+  const progress = ((index + 1) / Math.max(selected.poses.length, 1)) * 100
+  const streak = Math.min(100, Math.max(0, (similarity - 40) * 1.4))
 
   useEffect(() => {
     const stored = loadCustomChoreographies()
@@ -182,16 +189,155 @@ export function DanceTrainer() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4 p-4 text-zinc-100">
-      <Card className="border-zinc-800 bg-zinc-950">
-        <CardHeader>
-          <CardTitle>BitDance</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-2 lg:grid-cols-[1fr_auto]">
+    <div className="mx-auto max-w-[1500px] space-y-4 px-3 pb-8 pt-4 text-stone-900 sm:px-5 lg:px-8">
+      <motion.header
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="deco-panel deco-grid overflow-hidden p-4 sm:p-6"
+      >
+        <div className="grid gap-4 lg:grid-cols-[1fr_auto_auto_auto] lg:items-center">
+          <div>
+            <p className="deco-title text-[11px] text-amber-800">BitDance Arena</p>
+            <h1 className="mt-1 text-3xl text-stone-900 sm:text-4xl">Avatar Performance Chamber</h1>
+            <p className="mt-2 max-w-2xl text-sm text-stone-700">
+              Train like a rhythm game: mirror the target avatar, hit precision thresholds, and chain pose streaks.
+            </p>
+          </div>
+
+          <div className="deco-panel bg-amber-50/70 px-4 py-3 text-center">
+            <p className="deco-title text-[10px] text-amber-800">Similarity</p>
+            <p className="text-3xl font-semibold text-stone-900">{similarity.toFixed(1)}%</p>
+          </div>
+
+          <div className="deco-panel bg-amber-50/70 px-4 py-3 text-center">
+            <p className="deco-title text-[10px] text-amber-800">Sequence</p>
+            <p className="text-xl font-semibold text-stone-900">{index + 1}/{selected.poses.length}</p>
+          </div>
+
+          <div className="deco-panel bg-amber-50/70 px-4 py-3 text-center">
+            <p className="deco-title text-[10px] text-amber-800">Difficulty</p>
+            <p className="text-xl font-semibold text-stone-900">{selected.difficulty}</p>
+          </div>
+        </div>
+      </motion.header>
+
+      <section className="deco-panel p-3 sm:p-4">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={modeButtonClass(mode === 'learn')} onClick={() => setMode('learn')}>
+            Learn Mode
+          </button>
+          <button type="button" className={modeButtonClass(mode === 'practice')} onClick={() => setMode('practice')}>
+            Practice Mode
+          </button>
+          <button type="button" className={modeButtonClass(false)} onClick={() => setIndex((prev) => Math.max(prev - 1, 0))}>
+            Previous Beat
+          </button>
+          <button
+            type="button"
+            className={modeButtonClass(false)}
+            onClick={() => setIndex((prev) => Math.min(prev + 1, selected.poses.length - 1))}
+          >
+            Next Beat
+          </button>
+          <button
+            type="button"
+            className={modeButtonClass(false)}
+            onClick={() => {
+              const next = all[(all.findIndex((item) => item.id === selected.id) + 1) % all.length]
+              setSelected(next)
+              setIndex(0)
+            }}
+          >
+            Next Routine
+          </button>
+        </div>
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05, duration: 0.45 }}
+          className="deco-panel overflow-hidden p-3 sm:p-4"
+        >
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="deco-title text-[11px] text-amber-800">Main Stage</p>
+              <h2 className="text-xl text-stone-900 sm:text-2xl">{selected.name}</h2>
+            </div>
+            <p className="text-xs uppercase tracking-[0.2em] text-stone-600">Reference Avatar</p>
+          </div>
+
+          <div className="relative h-[560px] overflow-hidden border border-amber-900/30 bg-[#13222f] sm:h-[620px]">
+            <VrmAvatar pose={targetPose} wireframe={mode === 'learn'} opacity={0.92} vrmUrl={selectedAvatarUrl} />
+            <div className="absolute left-3 top-3 rounded-none border border-amber-200/60 bg-stone-900/55 px-3 py-2 text-xs uppercase tracking-[0.2em] text-amber-100">
+              Target Pose Hologram
+            </div>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0.2, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.22 }}
+              className="pointer-events-none absolute inset-0 border-[1px] border-amber-200/30"
+            />
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="deco-title mb-1 text-[10px] text-amber-800">Accuracy Meter</p>
+              <div className="deco-meter h-4">
+                <div className="h-full bg-gradient-to-r from-amber-500 via-yellow-500 to-emerald-500" style={{ width: `${similarity}%` }} />
+              </div>
+            </div>
+            <div>
+              <p className="deco-title mb-1 text-[10px] text-amber-800">Streak Meter</p>
+              <div className="deco-meter h-4">
+                <div className="h-full bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500" style={{ width: `${streak}%` }} />
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.45 }}
+          className="space-y-4"
+        >
+          <div className="deco-panel p-3 sm:p-4">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div>
+                <p className="deco-title text-[10px] text-amber-800">Player Feed</p>
+                <h3 className="text-lg text-stone-900">Live Motion Capture</h3>
+              </div>
+              <p className="text-xs uppercase tracking-[0.2em] text-stone-600">Current Pose</p>
+            </div>
+
+            <div className="relative h-[300px] overflow-hidden border border-amber-900/30 bg-stone-900">
+              <VideoInput
+                onReady={(video) => {
+                  setVideoEl(video)
+                  setCameraError('')
+                }}
+                onError={(message) => setCameraError(message)}
+              />
+              <PoseOverlayCanvas video={videoEl} currentPose={currentPose} targetPose={targetPose} />
+            </div>
+
+            <div className="mt-2 h-[220px] overflow-hidden border border-amber-900/30 bg-[#152634]">
+              <VrmAvatar pose={currentPose} opacity={0.86} vrmUrl={selectedAvatarUrl} />
+            </div>
+
+            {cameraError && <p className="mt-2 text-xs text-rose-700">Camera issue: {cameraError}</p>}
+            <PoseDetection video={videoEl} enabled={mode === 'practice'} onPose={setCurrentPose} />
+          </div>
+
+          <div className="deco-panel p-3 sm:p-4">
+            <p className="deco-title mb-2 text-[10px] text-amber-800">Avatar Workshop</p>
             <div className="grid gap-2 sm:grid-cols-3">
-              <label className="rounded-md border border-dashed border-zinc-600 px-3 py-2 text-center text-sm text-zinc-200">
-                Upload Custom VRM
+              <label className="cursor-pointer border border-amber-800 bg-amber-100/50 px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.16em] text-amber-900">
+                Upload VRM
                 <input
                   type="file"
                   accept=".vrm,model/gltf-binary"
@@ -208,19 +354,24 @@ export function DanceTrainer() {
                 value={avatarUrlInput}
                 onChange={(e) => setAvatarUrlInput(e.target.value)}
                 placeholder="VRM URL"
-                className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100"
+                className="border border-amber-800 bg-amber-50 px-3 py-2 text-sm text-stone-900 outline-none focus:ring-2 focus:ring-amber-500"
               />
-              <Button variant="outline" onClick={() => void handleAvatarUrlSave()}>
-                Add VRM URL
-              </Button>
+              <button
+                type="button"
+                onClick={() => void handleAvatarUrlSave()}
+                className="border border-amber-800 bg-stone-800 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100"
+              >
+                Add URL
+              </button>
             </div>
+
             <select
               value={selectedAvatarId}
               onChange={(e) => {
                 setSelectedAvatar(e.target.value)
                 setSelectedAvatarId(e.target.value)
               }}
-              className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100"
+              className="mt-2 w-full border border-amber-800 bg-amber-50 px-3 py-2 text-sm text-stone-900"
             >
               <option value="default">Default Fallback Avatar</option>
               {avatarOptions.map((item) => (
@@ -229,108 +380,35 @@ export function DanceTrainer() {
                 </option>
               ))}
             </select>
+
+            {avatarMessage && <p className="mt-2 text-xs text-emerald-700">{avatarMessage}</p>}
+            {avatarError && <p className="mt-2 text-xs text-rose-700">{avatarError}</p>}
           </div>
-
-          {avatarMessage && <p className="text-sm text-emerald-400">{avatarMessage}</p>}
-          {avatarError && <p className="text-sm text-rose-400">{avatarError}</p>}
-
-          <ChoreographySelector
-            choreographies={customChoreographies}
-            onChoose={(item) => {
-              setSelected(item)
-              setIndex(0)
-            }}
-            onAdd={(item) => setCustomChoreographies((prev) => [item, ...prev])}
-          />
-        </CardContent>
-      </Card>
-
-      <div className="flex gap-2">
-        <Button variant={mode === 'learn' ? 'default' : 'outline'} onClick={() => setMode('learn')}>
-          Learn Mode
-        </Button>
-        <Button variant={mode === 'practice' ? 'default' : 'outline'} onClick={() => setMode('practice')}>
-          Practice Mode
-        </Button>
+        </motion.section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border-zinc-800 bg-zinc-950">
-          <CardHeader>
-            <CardTitle>Reference ({selected.name})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[500px] overflow-hidden rounded-lg border border-zinc-800">
-              <VrmAvatar pose={targetPose} wireframe={mode === 'learn'} opacity={0.88} vrmUrl={selectedAvatarUrl} />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-zinc-800 bg-zinc-950">
-          <CardHeader>
-            <CardTitle>Your Performance</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="relative h-[500px] overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900">
-              <VideoInput
-                onReady={(video) => {
-                  setVideoEl(video)
-                  setCameraError('')
-                }}
-                onError={(message) => setCameraError(message)}
-              />
-              <PoseOverlayCanvas video={videoEl} currentPose={currentPose} targetPose={targetPose} />
-              <div className="absolute bottom-3 right-3 h-48 w-40 overflow-hidden rounded-lg border border-zinc-600 bg-zinc-900/80">
-                <VrmAvatar pose={currentPose} opacity={0.78} vrmUrl={selectedAvatarUrl} />
-              </div>
-            </div>
-            {cameraError && <p className="text-xs text-rose-400">Camera issue: {cameraError}</p>}
-            <PoseDetection video={videoEl} enabled={mode === 'practice'} onPose={setCurrentPose} />
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border-zinc-800 bg-zinc-950">
-        <CardContent className="space-y-3 pt-6">
-          <div className="text-sm text-zinc-300">
-            Step {index + 1}/{selected.poses.length} | Similarity {similarity.toFixed(1)}%
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.45 }}
+        className="deco-panel p-3 sm:p-4"
+      >
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="deco-title text-[10px] text-amber-800">Routine Library</p>
+            <h3 className="text-lg text-stone-900">Choose or Import Choreography</h3>
           </div>
-          <div className="h-3 rounded bg-zinc-800">
-            <div className="h-3 rounded bg-cyan-500" style={{ width: `${similarity}%` }} />
-          </div>
-          <div className="h-2 rounded bg-zinc-800">
-            <div
-              className="h-2 rounded bg-emerald-500"
-              style={{ width: `${((index + 1) / Math.max(selected.poses.length, 1)) * 100}%` }}
-            />
-          </div>
-          <p className="text-xs text-zinc-400">
-            {similarity >= ADVANCE_THRESHOLD
-              ? 'Great match. Auto-advancing to next pose.'
-              : 'Align your limbs with the reference avatar to progress.'}
-          </p>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIndex((prev) => Math.max(prev - 1, 0))}>
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIndex((prev) => Math.min(prev + 1, selected.poses.length - 1))}
-            >
-              Next
-            </Button>
-            <Button
-              onClick={() => {
-                const next = all[(all.findIndex((item) => item.id === selected.id) + 1) % all.length]
-                setSelected(next)
-                setIndex(0)
-              }}
-            >
-              Next Choreography
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          <p className="text-xs uppercase tracking-[0.2em] text-stone-600">Progress {progress.toFixed(0)}%</p>
+        </div>
+        <ChoreographySelector
+          choreographies={customChoreographies}
+          onChoose={(item) => {
+            setSelected(item)
+            setIndex(0)
+          }}
+          onAdd={(item) => setCustomChoreographies((prev) => [item, ...prev])}
+        />
+      </motion.section>
     </div>
   )
 }

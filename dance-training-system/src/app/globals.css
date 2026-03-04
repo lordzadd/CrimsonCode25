@@ -3,24 +3,24 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
-  --background: 222 47% 4%;
-  --foreground: 210 20% 98%;
-  --card: 223 38% 7%;
-  --card-foreground: 210 20% 98%;
-  --muted: 217 33% 18%;
-  --muted-foreground: 215 20% 68%;
-  --border: 216 34% 20%;
-  --primary: 188 95% 43%;
-  --primary-foreground: 222 47% 5%;
-  --secondary: 219 30% 16%;
-  --secondary-foreground: 210 20% 98%;
+  color-scheme: only light;
+  --background: 38 41% 90%;
+  --foreground: 203 28% 17%;
+  --card: 40 32% 95%;
+  --card-foreground: 203 28% 17%;
+  --muted: 39 26% 83%;
+  --muted-foreground: 206 18% 37%;
+  --border: 38 35% 62%;
+  --primary: 42 71% 44%;
+  --primary-foreground: 32 32% 94%;
+  --secondary: 32 24% 22%;
+  --secondary-foreground: 40 34% 92%;
   --accent: 195 100% 48%;
-  --accent-foreground: 222 47% 5%;
-  --destructive: 0 62% 55%;
+  --accent-foreground: 203 28% 14%;
+  --destructive: 0 67% 46%;
   --destructive-foreground: 210 20% 98%;
-  --ring: 188 95% 43%;
-  --input: 216 34% 20%;
+  --ring: 42 71% 44%;
+  --input: 38 29% 58%;
 }
 
 * {
@@ -31,4 +31,68 @@ body {
   min-height: 100vh;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-family: var(--font-body), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), serif;
+  letter-spacing: 0.08em;
+}
+
+.artdeco-bg {
+  background:
+    radial-gradient(1200px 800px at -10% -20%, rgba(195, 150, 64, 0.18), transparent 62%),
+    radial-gradient(1000px 700px at 120% 10%, rgba(33, 61, 86, 0.15), transparent 58%),
+    linear-gradient(180deg, #f7efdc 0%, #eadab8 38%, #d8c094 100%);
+}
+
+.deco-panel {
+  position: relative;
+  border: 2px solid rgba(96, 72, 32, 0.55);
+  background: linear-gradient(180deg, rgba(255, 252, 245, 0.85), rgba(241, 227, 191, 0.8));
+  box-shadow: 0 16px 40px rgba(58, 41, 13, 0.14);
+}
+
+.deco-panel::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(138, 105, 38, 0.48);
+  pointer-events: none;
+}
+
+.deco-title {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.deco-grid {
+  background-image:
+    linear-gradient(to right, rgba(89, 61, 11, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(89, 61, 11, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.deco-meter {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(91, 67, 26, 0.35);
+  background: rgba(66, 52, 25, 0.16);
+}
+
+.deco-meter::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.15) 0,
+    rgba(255, 255, 255, 0.15) 10px,
+    rgba(255, 255, 255, 0) 10px,
+    rgba(255, 255, 255, 0) 20px
+  );
+  pointer-events: none;
 }

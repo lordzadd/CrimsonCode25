@@ -79,19 +79,19 @@ export function ChoreographySelector({ choreographies, onChoose, onAdd }: Choreo
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search choreography"
-          className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100"
+          className="border border-amber-800 bg-amber-50 px-3 py-2 text-sm text-stone-900"
         />
         <select
           value={difficulty}
           onChange={(e) => setDifficulty(e.target.value)}
-          className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100"
+          className="border border-amber-800 bg-amber-50 px-3 py-2 text-sm text-stone-900"
         >
           <option>All</option>
           <option>Beginner</option>
           <option>Intermediate</option>
           <option>Advanced</option>
         </select>
-        <label className="rounded-md border border-dashed border-zinc-600 px-3 py-2 text-center text-sm text-zinc-200">
+        <label className="cursor-pointer border border-dashed border-amber-800 bg-amber-100/50 px-3 py-2 text-center text-sm text-amber-900">
           Upload Video
           <input
             type="file"
@@ -112,10 +112,10 @@ export function ChoreographySelector({ choreographies, onChoose, onAdd }: Choreo
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="Import from video URL"
-          className="flex-1 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100"
+          className="flex-1 border border-amber-800 bg-amber-50 px-3 py-2 text-sm text-stone-900"
         />
         <Button
-          variant="outline"
+          className="rounded-none border border-amber-800 bg-stone-800 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100 hover:bg-stone-700"
           onClick={() => {
             if (url.trim()) {
               void ingestVideo('url', undefined, url.trim())
@@ -127,27 +127,27 @@ export function ChoreographySelector({ choreographies, onChoose, onAdd }: Choreo
       </div>
 
       {loading && (
-        <div className="rounded-md border border-zinc-700 bg-zinc-900 p-3 text-sm text-zinc-300">
+        <div className="border border-amber-800 bg-amber-50/75 p-3 text-sm text-stone-700">
           {loading}
-          <div className="mt-2 h-2 w-full rounded bg-zinc-700">
-            <div className="h-2 rounded bg-cyan-500" style={{ width: `${progress}%` }} />
+          <div className="deco-meter mt-2 h-2 w-full">
+            <div className="h-2 bg-gradient-to-r from-amber-500 to-emerald-500" style={{ width: `${progress}%` }} />
           </div>
         </div>
       )}
-      {error && <p className="text-sm text-rose-400">{error}</p>}
+      {error && <p className="text-sm text-rose-700">{error}</p>}
 
       <div className="grid gap-3 md:grid-cols-3">
         {allChoreographies.map((item) => (
           <button
             key={item.id}
             type="button"
-            className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900 text-left transition hover:border-cyan-400"
+            className="overflow-hidden border border-amber-800 bg-amber-50/70 text-left transition hover:bg-amber-100/80"
             onClick={() => onChoose(item)}
           >
             <img src={item.thumbnailUrl} alt={item.name} className="h-28 w-full object-cover" />
             <div className="space-y-1 p-3">
-              <p className="text-sm font-semibold text-zinc-100">{item.name}</p>
-              <p className="text-xs text-zinc-400">{item.difficulty}</p>
+              <p className="text-sm font-semibold text-stone-900">{item.name}</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-amber-900">{item.difficulty}</p>
             </div>
           </button>
         ))}
